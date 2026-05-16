@@ -6,9 +6,13 @@
 #include <sys/wait.h>
 #include <termios.h>
 #include <unistd.h>
+#include "raw_termios.h"
 
 
 int main() {
+
+  // Save original termios config
+  term_save_orig();
 
   int master_fd;
   char ptyName[256];
@@ -63,15 +67,21 @@ int main() {
     // stdin -> pty
     if (fds[0].revents & POLLIN) {
       n = read(STDIN_FILENO, buffer, MAX_BUFFER);
-      if (n > 0)
-        write(master_fd, buffer, n);
+
+      if (n <= 0)
+        break;
+
+      write(master_fd, buffer, n);
     }
 
     // pty -> stdout
     if (fds[1].revents & POLLIN) {
       n = read(master_fd, buffer, MAX_BUFFER);
-      if (n > 0)
-        write(STDOUT_FILENO, buffer, n);
+
+      if (n == 0)
+        break;
+
+      write(STDOUT_FILENO, buffer, n);
     }
   }
 
@@ -79,6 +89,9 @@ int main() {
   int status;
   waitpid(pid, &status, 0);
   close(master_fd);
+
+  // Restaurar termios config antes de salir
+  atexit(term_restore_orig);
 
   return 0;
 }
