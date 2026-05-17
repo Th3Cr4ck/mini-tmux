@@ -6,6 +6,8 @@
 
 #define MAX_BUFFER 4096
 
+void ctrlB_command();
+
 void event_loop_run(Pty *pty) {
   struct pollfd fds[2];
   // stdin
@@ -43,6 +45,12 @@ void event_loop_run(Pty *pty) {
       if (n <= 0)
         break;
 
+      if (buffer[0] == 0x02) // Ctrl+B
+      {
+        printf("CTRL+B detected!\r\n");
+        ctrlB_command();
+      }
+
       ssize_t written = pty_write(pty, buffer, n);
 
       if (written <= 0)
@@ -64,4 +72,17 @@ void event_loop_run(Pty *pty) {
         break;
     }
   }
+}
+
+void ctrlB_command() {
+  char command[3];
+  ssize_t n = read(STDIN_FILENO, command, sizeof(command));
+
+  if (n <= 0)
+    return;
+
+  if (command[0] == 'c')
+    printf("Crear otro PTY\r\n");
+  else
+    printf("CTRL+B + %c command not defined\r\n", command[0]);
 }

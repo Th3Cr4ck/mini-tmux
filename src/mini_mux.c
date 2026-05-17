@@ -15,6 +15,8 @@ int main() {
   term_save_orig();
   atexit(term_restore_orig);
 
+  term_enter_raw_mode();
+
   /**********************/
   /* PTY */
   /**********************/

@@ -13,5 +13,9 @@ all: $(TARGET)
 $(TARGET): $(SRC) $(HDR)
 	$(CC) $(CFLAGS) $(SRC) -o $(TARGET)
 
+run: $(TARGET)
+	./$(TARGET)
+
+
 clean:
 	rm -f $(TARGET)
