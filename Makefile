@@ -1,13 +1,17 @@
-CC=gcc
-CFLAGS=-Wall -Wextra -Iinclude
+CC = gcc
 
-SRC=$(wildcard src/*.c)
+CFLAGS = -Wall -Wextra -Iinclude
 
-mini_mux:
-	$(CC) $(CFLAGS) $(SRC) -o mini_mux
+SRC = $(wildcard src/*.c)
+
+HDR = $(wildcard include/*.h)
+
+TARGET = mini_mux
+
+all: $(TARGET)
+
+$(TARGET): $(SRC) $(HDR)
+	$(CC) $(CFLAGS) $(SRC) -o $(TARGET)
 
 clean:
-	rm -rf .cache/ \
-	rm mini_mux
-
-all: mini_mux
+	rm -f $(TARGET)
