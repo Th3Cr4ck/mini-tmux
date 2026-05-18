@@ -6,16 +6,17 @@
 
 #define MAX_BUFFER 4096
 
-void ctrlB_command();
+static void ctrlB_command();
 
-void event_loop_run(Pty *pty) {
+void event_loop_run(Session *session) {
+
   struct pollfd fds[2];
   // stdin
   fds[0].fd = STDIN_FILENO;
   fds[0].events = POLLIN;
 
   // pty
-  fds[1].fd = pty->master_fd;
+  fds[1].fd = session->pty.master_fd;
   fds[1].events = POLLIN;
 
   char buffer[MAX_BUFFER];
@@ -51,7 +52,7 @@ void event_loop_run(Pty *pty) {
         ctrlB_command();
       }
 
-      ssize_t written = pty_write(pty, buffer, n);
+      ssize_t written = session_write_pty(session, buffer, n);
 
       if (written <= 0)
         break;
@@ -61,7 +62,7 @@ void event_loop_run(Pty *pty) {
      * pty -> stdout
      */
     if (fds[1].revents & POLLIN) {
-      ssize_t n = pty_read(pty, buffer, sizeof(buffer));
+      ssize_t n = session_read_pty(session, buffer, sizeof(buffer));
 
       if (n <= 0)
         break;

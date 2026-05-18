@@ -1,8 +1,8 @@
 #ifndef EVENT_LOOP_H
 #define EVENT_LOOP_H
 
-#include "mini_pty.h"
+#include "session.h"
 
-void event_loop_run(Pty *pty);
+void event_loop_run(Session *session);
 
 #endif

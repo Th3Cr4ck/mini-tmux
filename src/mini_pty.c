@@ -28,8 +28,8 @@ int pty_start(Pty *pty) {
     // Padre
     pty->child_pid = pid;
 
-    printf("PTY creado: %s\n", pty_name);
-    printf("PID shell: %d\n", pid);
+    printf("PTY creado: %s\r\n", pty_name);
+    printf("PID shell: %d\r\n", pid);
 
     return 0;
 }

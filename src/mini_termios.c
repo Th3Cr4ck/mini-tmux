@@ -3,9 +3,9 @@
 #include <termios.h>
 #include <unistd.h>
 
-static void print_termios_flags(const struct termios *t, const char *label);
+// static void print_termios_flags(const struct termios *t, const char *label);
 
-struct termios orig_termios;
+static struct termios orig_termios;
 
 void term_save_orig() { tcgetattr(STDIN_FILENO, &orig_termios); }
 
@@ -15,6 +15,8 @@ void term_restore_orig() {
 }
 
 void term_enter_raw_mode() {
+  puts("Entering termios raw mode");
+
   struct termios t;
 
   tcgetattr(STDIN_FILENO, &t);
@@ -23,9 +25,10 @@ void term_enter_raw_mode() {
 
   tcsetattr(STDIN_FILENO, TCSAFLUSH, &t);
 
-  print_termios_flags(&t, "Termios raw mode");
+  // print_termios_flags(&t, "Termios raw mode");
 }
 
+/*
 static void print_termios_flags(const struct termios *t, const char *label) {
   printf("\r\n=== %s ===\r\n", label);
 
@@ -120,4 +123,4 @@ static void print_termios_flags(const struct termios *t, const char *label) {
   printf("  VWERASE : %d (0x%02x)\r\n", t->c_cc[VWERASE], t->c_cc[VWERASE]);
   printf("  VLNEXT  : %d (0x%02x)\r\n", t->c_cc[VLNEXT], t->c_cc[VLNEXT]);
   printf("  VEOL2   : %d (0x%02x)\r\n", t->c_cc[VEOL2], t->c_cc[VEOL2]);
-}
+} */

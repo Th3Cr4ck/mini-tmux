@@ -1,8 +1,9 @@
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <stdio.h>
 
-#include "mini_pty.h"
+#include "session.h"
 #include "mini_termios.h"
 #include "event_loop.h"
 
@@ -18,19 +19,19 @@ int main() {
   term_enter_raw_mode();
 
   /**********************/
-  /* PTY */
+  /* Session */
   /**********************/
-  Pty pty;
+  SessionManager *sm = NULL;
 
-  if (pty_start(&pty) == -1)
+  if (session_manager_init(&sm) == -1)
     return 1;
 
-  event_loop_run(&pty);
+  if (session_create(sm) == -1)
+    return 1;
 
-  int status;
-  waitpid(pty.child_pid, &status, 0);
+  event_loop_run(&(sm->sessions[0]));
 
-  pty_destroy(&pty);
+  session_manager_destroy(sm);
 
   return 0;
 }
