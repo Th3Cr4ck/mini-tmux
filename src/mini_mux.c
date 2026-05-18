@@ -1,12 +1,11 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <stdio.h>
 
-#include "session.h"
-#include "mini_termios.h"
 #include "event_loop.h"
-
+#include "mini_termios.h"
+#include "session.h"
 
 int main() {
 
@@ -29,9 +28,10 @@ int main() {
   if (session_create(sm) == -1)
     return 1;
 
-  event_loop_run(&(sm->sessions[0]));
+  event_loop_run(sm);
 
   session_manager_destroy(sm);
 
+  puts("Saliendo de mini-tmux");
   return 0;
 }

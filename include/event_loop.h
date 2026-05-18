@@ -3,6 +3,5 @@
 
 #include "session.h"
 
-void event_loop_run(Session *session);
-
+void event_loop_run(SessionManager *sm);
 #endif

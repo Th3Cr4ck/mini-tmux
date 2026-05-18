@@ -11,7 +11,6 @@ void term_save_orig() { tcgetattr(STDIN_FILENO, &orig_termios); }
 
 void term_restore_orig() { 
   tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
-  puts("Exiting raw mode");
 }
 
 void term_enter_raw_mode() {

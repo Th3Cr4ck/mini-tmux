@@ -12,7 +12,7 @@ typedef struct {
 typedef struct {
   Session *sessions;
   size_t count;
-  size_t active;
+  size_t active_index;
   int next_id;
 } SessionManager;
 
