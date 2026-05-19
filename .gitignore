@@ -38,6 +38,7 @@ compile_commands.json
 *.i*86
 *.x86_64
 *.hex
+mini_mux
 
 # Debug files
 *.dSYM/

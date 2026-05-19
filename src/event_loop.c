@@ -3,48 +3,56 @@
 #include <poll.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #define MAX_BUFFER 4096
 
-static void ctrlB_command();
+static int ctrlB_command(SessionManager *sm);
 
 void event_loop_run(SessionManager *sm) {
-
-  struct pollfd fds[2];
-
-  // stdin
-  fds[0].fd = STDIN_FILENO;
-  fds[0].events = POLLIN;
-
-  // pty
-  for (size_t i = 1; i <= sm->count; i++) {
-    fds[i].fd = sm->sessions[i - 1].pty.master_fd;
-    fds[i].events = POLLIN;
-    // printf("fds[%lu].fd = %d\r\n", i, fds[i-1].fd);
-    // printf("fds[%lu].events = %d\r\n", i, fds[i-1].events);
-  }
 
   char buffer[MAX_BUFFER];
 
   while (1) {
 
-    int ret = poll(fds, 2, -1);
+    /* POLL STRUCT */
+    struct pollfd *fds = malloc((sm->count + 1) * sizeof(struct pollfd));
+    if (fds == NULL) {
+      perror("Eror al hacer malloc para 'fds'");
+      break;
+    }
 
+    // stdin
+    fds[0].fd = STDIN_FILENO;
+    fds[0].events = POLLIN;
+
+    // pty
+    for (size_t i = 1; i <= sm->count; i++) {
+      fds[i].fd = sm->sessions[i - 1].pty.master_fd;
+      fds[i].events = POLLIN;
+    }
+
+    /* POLL */
+    int ret = poll(fds, sm->count + 1, -1);
     if (ret == -1) {
       perror("poll");
       break;
     }
 
     struct pollfd *active_fds = NULL;
-    active_fds = &fds[sm->active_index+1];
-    if (active_fds == NULL) continue;
+    active_fds = &fds[sm->active_index + 1];
 
     /*
      * PTY died
      */
     if (active_fds->revents & (POLLHUP | POLLERR)) {
-      break;
+      session_destroy(sm, sm->sessions[sm->active_index].id);
+      if (sm->count > 0)
+        continue;
+      else
+        break;
     }
 
     /*
@@ -59,7 +67,10 @@ void event_loop_run(SessionManager *sm) {
       if (buffer[0] == 0x02) // Ctrl+B
       {
         printf("CTRL+B detected!\r\n");
-        ctrlB_command();
+        ctrlB_command(sm);
+        // session_write_pty(&sm->sessions[sm->active_index], "\r\n", 2);
+        free(fds);
+        continue;
       }
 
       ssize_t written =
@@ -84,20 +95,38 @@ void event_loop_run(SessionManager *sm) {
       if (written <= 0)
         break;
     }
+
+    free(fds);
   }
 }
 
-void ctrlB_command() {
+static int ctrlB_command(SessionManager *sm) {
   // Esperar por el segundo comando despues de CTRL+break
 
   char command[3];
   ssize_t n = read(STDIN_FILENO, command, sizeof(command));
 
-  if (n <= 0)
-    return;
+  char *msg = calloc(256, sizeof(char));
 
-  if (command[0] == 'c')
-    printf("Crear otra session\r\n");
-  else
-    printf("CTRL+B + %c command not defined\r\n", command[0]);
+  if (n <= 0)
+    return 0;
+
+  if (command[0] == 'c') {
+    sprintf(msg, "Crear otra session\r\n");
+    write(STDOUT_FILENO, msg, strlen(msg));
+
+    if (session_create(sm) == -1) {
+      sprintf(msg, "Error al crear nueva sesion\r\n");
+      write(STDOUT_FILENO, msg, strlen(msg));
+      perror("Error al crear nueva sesion");
+      free(msg);
+      return -1;
+    }
+  } else {
+    sprintf(msg, "CTRL+B + %c command not defined\r\n", command[0]);
+    write(STDOUT_FILENO, msg, strlen(msg));
+  }
+
+  free(msg);
+  return 0;
 }
